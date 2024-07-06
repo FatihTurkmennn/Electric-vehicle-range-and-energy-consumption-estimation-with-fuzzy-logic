@@ -1,0 +1,92 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+import matplotlib.pyplot as plt
+
+plt.ion()  # Interaktif modu aç
+
+# Giriş değişkenleri
+hiz = ctrl.Antecedent(np.arange(90, 181, 1), 'hiz')
+mod = ctrl.Antecedent(np.arange(2000, 8001, 1), 'mod')
+agirlik = ctrl.Antecedent(np.arange(1500, 3001, 1), 'agirlik')
+
+# Çıkış değişkeni
+enerji_tuketimi = ctrl.Consequent(np.arange(15, 46, 1), 'enerji_tuketimi')
+
+# Üyelik fonksiyonlarını tanımlama
+hiz['dusuk'] = fuzz.trimf(hiz.universe, [90, 90, 120])
+hiz['orta'] = fuzz.trimf(hiz.universe, [90, 120, 150])
+hiz['yuksek'] = fuzz.trimf(hiz.universe, [120, 150, 180])
+
+mod['eco'] = fuzz.trimf(mod.universe, [2000, 2000, 6000])
+mod['normal'] = fuzz.trimf(mod.universe, [2000, 6000, 8000])
+mod['sport'] = fuzz.trimf(mod.universe, [6000, 8000, 8000])
+
+agirlik['hafif'] = fuzz.trimf(agirlik.universe, [1500, 1500, 2250])
+agirlik['orta'] = fuzz.trimf(agirlik.universe, [1500, 2250, 3000])
+agirlik['agir'] = fuzz.trimf(agirlik.universe, [2250, 3000, 3000])
+
+enerji_tuketimi['dusuk'] = fuzz.trimf(enerji_tuketimi.universe, [15, 15, 25])
+enerji_tuketimi['orta'] = fuzz.trimf(enerji_tuketimi.universe, [15, 25, 35])
+enerji_tuketimi['yuksek'] = fuzz.trimf(enerji_tuketimi.universe, [25, 45, 45])
+
+
+# Kurallar oluşturma
+kural1 = ctrl.Rule(hiz['dusuk'] & mod['eco'] & agirlik['hafif'], enerji_tuketimi['dusuk'])
+kural2 = ctrl.Rule(hiz['dusuk'] & mod['eco'] & agirlik['orta'], enerji_tuketimi['dusuk'])
+kural3 = ctrl.Rule(hiz['dusuk'] & mod['eco'] & agirlik['agir'], enerji_tuketimi['orta'])
+kural4 = ctrl.Rule(hiz['dusuk'] & mod['normal'] & agirlik['hafif'], enerji_tuketimi['orta'])
+kural5 = ctrl.Rule(hiz['dusuk'] & mod['normal'] & agirlik['orta'], enerji_tuketimi['orta'])
+kural6 = ctrl.Rule(hiz['dusuk'] & mod['normal'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+kural7 = ctrl.Rule(hiz['dusuk'] & mod['sport'] & agirlik['hafif'], enerji_tuketimi['orta'])
+kural8 = ctrl.Rule(hiz['dusuk'] & mod['sport'] & agirlik['orta'], enerji_tuketimi['yuksek'])
+kural9 = ctrl.Rule(hiz['dusuk'] & mod['sport'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+
+kural10 = ctrl.Rule(hiz['orta'] & mod['eco'] & agirlik['hafif'], enerji_tuketimi['dusuk'])
+kural11 = ctrl.Rule(hiz['orta'] & mod['eco'] & agirlik['orta'], enerji_tuketimi['orta'])
+kural12 = ctrl.Rule(hiz['orta'] & mod['eco'] & agirlik['agir'], enerji_tuketimi['orta'])
+kural13 = ctrl.Rule(hiz['orta'] & mod['normal'] & agirlik['hafif'], enerji_tuketimi['orta'])
+kural14 = ctrl.Rule(hiz['orta'] & mod['normal'] & agirlik['orta'], enerji_tuketimi['orta'])
+kural15 = ctrl.Rule(hiz['orta'] & mod['normal'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+kural16 = ctrl.Rule(hiz['orta'] & mod['sport'] & agirlik['hafif'], enerji_tuketimi['orta'])
+kural17 = ctrl.Rule(hiz['orta'] & mod['sport'] & agirlik['orta'], enerji_tuketimi['yuksek'])
+kural18 = ctrl.Rule(hiz['orta'] & mod['sport'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+
+kural19 = ctrl.Rule(hiz['yuksek'] & mod['eco'] & agirlik['hafif'], enerji_tuketimi['orta'])
+kural20 = ctrl.Rule(hiz['yuksek'] & mod['eco'] & agirlik['orta'], enerji_tuketimi['yuksek'])
+kural21 = ctrl.Rule(hiz['yuksek'] & mod['eco'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+kural22 = ctrl.Rule(hiz['yuksek'] & mod['normal'] & agirlik['hafif'], enerji_tuketimi['yuksek'])
+kural23 = ctrl.Rule(hiz['yuksek'] & mod['normal'] & agirlik['orta'], enerji_tuketimi['yuksek'])
+kural24 = ctrl.Rule(hiz['yuksek'] & mod['normal'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+kural25 = ctrl.Rule(hiz['yuksek'] & mod['sport'] & agirlik['hafif'], enerji_tuketimi['yuksek'])
+kural26 = ctrl.Rule(hiz['yuksek'] & mod['sport'] & agirlik['orta'], enerji_tuketimi['yuksek'])
+kural27 = ctrl.Rule(hiz['yuksek'] & mod['sport'] & agirlik['agir'], enerji_tuketimi['yuksek'])
+
+# Kontrol sistemi tanımlama
+enerji_tuketimi_kontrol = ctrl.ControlSystem([kural1, kural2, kural3, kural4, kural5, kural6, kural7, kural8, kural9, 
+                                             kural10, kural11, kural12, kural13, kural14, kural15, kural16, kural17, 
+                                             kural18, kural19, kural20, kural21, kural22, kural23, kural24, kural25, 
+                                             kural26, kural27])
+
+# Simülasyon motorunu tanımlama
+enerji_tuketimi_simulasyonu = ctrl.ControlSystemSimulation(enerji_tuketimi_kontrol)
+
+# Giriş değişkenlerine değer atama
+enerji_tuketimi_simulasyonu.input['hiz'] = 160  # km/saat cinsinden
+enerji_tuketimi_simulasyonu.input['mod'] = 3000  # sürüş modu ECO NORMAL SPORT
+enerji_tuketimi_simulasyonu.input['agirlik'] = 1900  # kg cinsinden
+
+# Hesaplama yapma
+enerji_tuketimi_simulasyonu.compute()
+
+# Sonucu yazdırma
+print("Tahmini enerji Tüketimi:", enerji_tuketimi_simulasyonu.output['enerji_tuketimi'], "kWh/100km")
+
+# Hesaplanan enerji tüketimi ile menzil hesaplama
+kwh = enerji_tuketimi_simulasyonu.output['enerji_tuketimi']
+menzil = -11.20 * kwh + 649.55
+print("Tahmini Menzil:", menzil, "km")
+
+# Sonucu görselleştirme
+enerji_tuketimi.view(sim=enerji_tuketimi_simulasyonu)
+plt.show()  # Grafik gösterimi
